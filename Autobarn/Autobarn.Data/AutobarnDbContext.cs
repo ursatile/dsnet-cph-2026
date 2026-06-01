@@ -49,5 +49,28 @@ public class AutobarnDbContext(
 			entity.Property(e => e.Color).HasMaxLength(32).IsUnicode(false);
 			entity.Property(e => e.ModelCode).HasMaxLength(32).IsUnicode(false);
 		});
+
+		modelBuilder.Entity<Make>().HasData(SampleData.CarMakeCsvData);
+		modelBuilder.Entity<CarModel>().HasData(SampleData.CarModelCsvData);
+	}
+
+	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+	{
+		optionsBuilder.UseAsyncSeeding(async (dbContext, _, cancellationToken) =>
+		{
+			var db = (AutobarnDbContext)dbContext;
+			if (await db.Vehicles.AnyAsync(cancellationToken)) return;
+			var models = await db.Models.ToListAsync(cancellationToken);
+			var vehiclesToInsert = SampleData.VehicleCsvData
+				.Select(csv => new Vehicle
+				{
+					Registration = csv.Registration,
+					Model = models.Single(m => m.Code == csv.ModelCode),
+					Color = csv.Color,
+					Year = csv.Year
+				});
+			await db.Vehicles.AddRangeAsync(vehiclesToInsert, cancellationToken);
+			await db.SaveChangesAsync(cancellationToken);
+		});
 	}
 }
