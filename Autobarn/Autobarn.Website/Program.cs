@@ -42,8 +42,29 @@ app.MapGet("/api/vehicles/{registration}",
 		db.Vehicles.Find(registration));
 
 //TODO: implement this:
-app.MapPut("/api/vehicles/{registration}", async (AutobarnDbContext db, VehicleDto dto) => {
-	// what goes here?
+app.MapPut("/api/vehicles/{registration}", async (AutobarnDbContext db,
+	string registration,
+	VehicleDto dto) => {
+	if (registration != dto.Registration) return Results.BadRequest();
+	var vehicle = await db.Vehicles.FindAsync(dto.Registration);
+	if(vehicle == null) {
+		var newVehicle = new Vehicle {
+			Color = dto.Color,
+			Registration = dto.Registration,
+			Year = dto.Year,
+			ModelCode = dto.ModelCode
+		};
+
+		await db.Vehicles.AddAsync(newVehicle);
+		await db.SaveChangesAsync();
+		return Results.Created($"/api/vehicles/{newVehicle.Registration}", newVehicle);
+	}
+
+	vehicle.Color = dto.Color;
+	vehicle.Year = dto.Year;
+	vehicle.ModelCode = dto.ModelCode;
+	await db.SaveChangesAsync();
+	return Results.NoContent();
 });
 
 app.MapPost("/api/vehicles", async (AutobarnDbContext db, VehicleDto dto) => {

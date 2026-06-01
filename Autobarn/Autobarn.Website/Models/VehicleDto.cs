@@ -6,8 +6,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Autobarn.Website.Models;
 
-public partial class VehicleDto
-{
+public partial class VehicleDto {
 
 	///<summary>The code identifying the make &amp; model, e.g. "dmc-delorean"</summary>
 	[HiddenInput(DisplayValue = false)]
@@ -19,16 +18,14 @@ public partial class VehicleDto
 	[GeneratedRegex("[^A-Z0-9]")]
 	private static partial Regex VehicleRegistrationRegex();
 
-	private static string? NormalizeRegistration(string? reg)
-	{
+	private static string? NormalizeRegistration(string? reg) {
 		return reg == null ? reg : VehicleRegistrationRegex().Replace(reg.ToUpperInvariant(), "");
 	}
 
 	///<summary>The registration code that identifies this vehicle, e.g. "OUTATIME"</summary>
 	[Required]
 	[DisplayName("Registration Plate")]
-	public string? Registration
-	{
+	public string? Registration {
 		get => NormalizeRegistration(field);
 		set;
 	}
@@ -51,8 +48,7 @@ public partial class VehicleDto
 
 	private static readonly SelectListItem blankSelectListItem = new("select...", String.Empty);
 
-	public static IEnumerable<SelectListItem> ListColors(string selectedColor)
-	{
+	public static IEnumerable<SelectListItem> ListColors(string selectedColor) {
 		var items = new List<SelectListItem> { blankSelectListItem };
 		items.AddRange(colors.Select(c => new SelectListItem(c, c, c == selectedColor)));
 		return items;
