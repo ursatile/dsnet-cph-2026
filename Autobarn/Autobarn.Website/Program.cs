@@ -1,11 +1,9 @@
 using Autobarn.Data;
-using Autobarn.Data.Entities;
 using Autobarn.Website.Api;
-using Autobarn.Website.Models;
+using EasyNetQ;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
-using System.ComponentModel;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +14,10 @@ sqliteConnection.Open();
 builder.Services.AddDbContext<AutobarnDbContext>(options => options.UseSqlite(sqliteConnection));
 builder.Services.AddControllersWithViews();
 builder.Services.AddOpenApi();
+
+var rabbitmq = builder.Configuration.GetConnectionString("rabbitmq");
+builder.Services.AddEasyNetQ(rabbitmq);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

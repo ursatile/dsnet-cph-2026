@@ -1,6 +1,8 @@
 using Autobarn.Data;
 using Autobarn.Data.Entities;
+using Autobarn.Messages;
 using Autobarn.Website.Models;
+using EasyNetQ;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 
@@ -47,7 +49,8 @@ public static class EndpointRouteBuilderExtensions {
 					[Description("The vehicle to be added to the system")]
 			VehicleDto dto,
 					string modelCode,
-					ILogger<Program> logger
+					ILogger<Program> logger,
+					IBus bus
 				) => {
 					var existing = db.Vehicles.Find(dto.Registration);
 					if(existing != null) {
@@ -71,9 +74,19 @@ public static class EndpointRouteBuilderExtensions {
 					};
 					await db.Vehicles.AddAsync(vehicle);
 					await db.SaveChangesAsync();
+
+					var message = new NewVehicleMessage() {
+						Color = dto.Color,
+						Make = carModel.Make.Name,
+						Model = carModel.Name,
+						Registration = dto.Registration!,
+						CreatedAt = DateTimeOffset.UtcNow,
+						Year = dto.Year
+					};
+					Console.Beep(1200, 100);
+					await bus.PubSub.PublishAsync(message);
 					logger.LogInformation("Created new vehicle: {reg} ({make}, {model}, {color}, {year})",
 						dto.Registration, carModel.Make.Name, carModel.Name, dto.Color, dto.Year);
-					Console.Beep();
 					return Results.Created($"/api/vehicles/{vehicle.Registration}", vehicle);
 				})
 				.WithSummary("Add a new vehicle to Autobarn's platform")

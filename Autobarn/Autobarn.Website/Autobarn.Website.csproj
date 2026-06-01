@@ -8,6 +8,7 @@
 		<NoWarn>1591</NoWarn>
 	</PropertyGroup>
 	<ItemGroup>
+		<PackageReference Include="EasyNetQ" Version="8.1.4" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
 		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.8" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.8" />
@@ -15,5 +16,6 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Autobarn.Data\Autobarn.Data.csproj" />
+		<ProjectReference Include="..\Autobarn.Messages\Autobarn.Messages.csproj" />
 	</ItemGroup>
 </Project>

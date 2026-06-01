@@ -10,8 +10,13 @@ using var provider = serviceCollection.BuildServiceProvider();
 var bus = provider.GetRequiredService<IBus>();
 
 Console.WriteLine("Subscribing to messages...");
-await bus.PubSub.SubscribeAsync<Greeting>("subscriber", message => {
-    Console.WriteLine($"Received: {message}");
+await bus.PubSub.SubscribeAsync<Greeting>("dylan-beattie", message =>
+{
+	if (message.Number % 5 == 0)
+	{
+		throw new Exception("Oops, something went wrong!");
+	}
+	Console.WriteLine($"Received: {message}");
 });
 
 Console.WriteLine("Press any key to exit...");
