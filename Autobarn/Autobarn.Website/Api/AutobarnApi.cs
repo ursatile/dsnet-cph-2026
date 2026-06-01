@@ -1,6 +1,7 @@
 using Autobarn.Data;
 using Autobarn.Data.Entities;
 using Autobarn.Website.Models;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 
 namespace Autobarn.Website.Api;
@@ -14,10 +15,6 @@ public static class EndpointRouteBuilderExtensions {
 		app.MapGet("/api/hello/{name}", (string name) => $"Hello {name}!");
 		app.MapGet("/api/makes", (AutobarnDbContext db) => db.Makes.ToList());
 		app.MapGet("/api/carmodels", (AutobarnDbContext db) => db.Models.ToList());
-
-		app.MapGet("/api/vehicles/{registration}",
-			(string registration, AutobarnDbContext db) =>
-				db.Vehicles.Find(registration));
 
 		app.MapPut("/api/vehicles/{registration}", async (AutobarnDbContext db,
 			string registration,
@@ -49,13 +46,18 @@ public static class EndpointRouteBuilderExtensions {
 					AutobarnDbContext db,
 					[Description("The vehicle to be added to the system")]
 			VehicleDto dto,
-					string modelCode
+					string modelCode,
+					ILogger<Program> logger
 				) => {
 					var existing = db.Vehicles.Find(dto.Registration);
 					if(existing != null) {
+						logger.LogWarning("We already have a vehicle with registration {reg} on our system.", dto.Registration);
 						return Results.Conflict($"We already have a vehicle with registration {dto.Registration} on our system.");
 					}
-					var carModel = db.Models.FirstOrDefault(m => m.Code == modelCode);
+					var carModel = db.Models
+						.Include(m => m.Make)
+						.FirstOrDefault(m => m.Code == modelCode);
+
 					if(carModel == null) {
 						return Results.NotFound($"There is no model code matching {modelCode} in our database");
 					}
@@ -69,6 +71,9 @@ public static class EndpointRouteBuilderExtensions {
 					};
 					await db.Vehicles.AddAsync(vehicle);
 					await db.SaveChangesAsync();
+					logger.LogInformation("Created new vehicle: {reg} ({make}, {model}, {color}, {year})",
+						dto.Registration, carModel.Make.Name, carModel.Name, dto.Color, dto.Year);
+					Console.Beep();
 					return Results.Created($"/api/vehicles/{vehicle.Registration}", vehicle);
 				})
 				.WithSummary("Add a new vehicle to Autobarn's platform")
