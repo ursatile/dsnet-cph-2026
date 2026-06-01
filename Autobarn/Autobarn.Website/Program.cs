@@ -1,5 +1,6 @@
 using Autobarn.Data;
 using Autobarn.Website.Api;
+using Autobarn.Website.Services;
 using EasyNetQ;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,10 @@ builder.Services.AddOpenApi();
 
 var rabbitmq = builder.Configuration.GetConnectionString("rabbitmq");
 builder.Services.AddEasyNetQ(rabbitmq);
+
+builder.Services.AddSingleton<OutboxHostedService>();
+builder.Services.AddHostedService(services
+	=> services.GetRequiredService<OutboxHostedService>());
 
 var app = builder.Build();
 

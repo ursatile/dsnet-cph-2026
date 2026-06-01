@@ -2,6 +2,7 @@ using Autobarn.Data;
 using Autobarn.Data.Entities;
 using Autobarn.Messages;
 using Autobarn.Website.Models;
+using Autobarn.Website.Services;
 using EasyNetQ;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
@@ -51,7 +52,7 @@ public static class EndpointRouteBuilderExtensions {
 			VehicleDto dto,
 					string modelCode,
 					ILogger<Program> logger,
-					IBus bus
+					OutboxHostedService outbox
 				) => {
 					var existing = db.Vehicles.Find(dto.Registration);
 					if(existing != null) {
@@ -73,17 +74,6 @@ public static class EndpointRouteBuilderExtensions {
 						Year = dto.Year,
 						Model = carModel
 					};
-					await db.Vehicles.AddAsync(vehicle);
-					await db.SaveChangesAsync();
-
-					// Play a WAV file when a new vehicle is added
-					try {
-						var soundPlayer = new SoundPlayer("boing.wav");
-						soundPlayer.Play(); // Play asynchronously
-					} catch(Exception ex) {
-						logger.LogWarning(ex, "Failed to play sound notification for new vehicle");
-					}
-
 					var message = new NewVehicleMessage() {
 						Color = dto.Color,
 						Make = carModel.Make.Name,
@@ -92,7 +82,16 @@ public static class EndpointRouteBuilderExtensions {
 						CreatedAt = DateTimeOffset.UtcNow,
 						Year = dto.Year
 					};
-					await bus.PubSub.PublishAsync(message);
+
+					// Actually list the vehicle for sale.
+					await db.Vehicles.AddAsync(vehicle);
+					await db.OutboxMessages.AddAsync(new OutboxMessage(message));
+					await db.SaveChangesAsync();
+
+					// POWER OUTAGE HERE
+
+					outbox.WakeUpAndDoStuff();
+
 					logger.LogInformation("Created new vehicle: {reg} ({make}, {model}, {color}, {year})",
 						dto.Registration, carModel.Make.Name, carModel.Name, dto.Color, dto.Year);
 					return Results.Created($"/api/vehicles/{vehicle.Registration}", vehicle);
