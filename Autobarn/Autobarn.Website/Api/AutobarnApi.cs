@@ -5,6 +5,7 @@ using Autobarn.Website.Models;
 using EasyNetQ;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
+using System.Media;
 
 namespace Autobarn.Website.Api;
 
@@ -75,6 +76,14 @@ public static class EndpointRouteBuilderExtensions {
 					await db.Vehicles.AddAsync(vehicle);
 					await db.SaveChangesAsync();
 
+					// Play a WAV file when a new vehicle is added
+					try {
+						var soundPlayer = new SoundPlayer("boing.wav");
+						soundPlayer.Play(); // Play asynchronously
+					} catch(Exception ex) {
+						logger.LogWarning(ex, "Failed to play sound notification for new vehicle");
+					}
+
 					var message = new NewVehicleMessage() {
 						Color = dto.Color,
 						Make = carModel.Make.Name,
@@ -83,7 +92,6 @@ public static class EndpointRouteBuilderExtensions {
 						CreatedAt = DateTimeOffset.UtcNow,
 						Year = dto.Year
 					};
-					Console.Beep(1200, 100);
 					await bus.PubSub.PublishAsync(message);
 					logger.LogInformation("Created new vehicle: {reg} ({make}, {model}, {color}, {year})",
 						dto.Registration, carModel.Make.Name, carModel.Name, dto.Color, dto.Year);

@@ -7,4 +7,7 @@ public class NewVehicleMessage {
 
 	public int Year { get; set; }
 	public DateTimeOffset CreatedAt { get; set; }
+	public override string ToString() {
+		return $"New Vehicle: {Registration} ({Make} {Model}, {Color}, {Year}) at {CreatedAt}";
+	}
 }
