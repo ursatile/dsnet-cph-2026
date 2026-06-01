@@ -1,0 +1,23 @@
+@model List<CarModel>
+
+@{
+	ViewBag.Title = "Models";
+	Layout = "_Layout";
+}
+<h2>Vehicle Models</h2>
+@if(Model.Any()) {
+	@foreach(var group in Model.GroupBy(m => m.Make).OrderBy(m => m.Key.Name)) {
+		<h3>@group.Key.Name</h3>
+		<ul>
+			@foreach(var carModel in group) {
+				<li>
+					<a href="@Url.Action("Details", "CarModels", new { id = carModel.Code })">
+						@carModel.Make.Name @carModel.Name
+					</a>
+				</li>
+			}
+		</ul>
+	}
+} else {
+	<p>There are no car models in the database.</p>
+}

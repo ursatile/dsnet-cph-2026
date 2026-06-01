@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Autobarn.Data/Autobarn.Data.csproj" />
+  <Project Path="Autobarn.Website/Autobarn.Website.csproj" />
+</Solution>
