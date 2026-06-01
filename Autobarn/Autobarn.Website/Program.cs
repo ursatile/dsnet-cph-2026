@@ -1,4 +1,6 @@
 using Autobarn.Data;
+using Autobarn.Data.Entities;
+using Autobarn.Website.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,8 +37,27 @@ app.MapStaticAssets();
 app.MapGet("/api/hello", () => "Hello world!");
 app.MapGet("/api/hello/{name}", (string name) => $"Hello {name}!");
 app.MapGet("/api/makes", (AutobarnDbContext db) => db.Makes.ToList());
+app.MapGet("/api/vehicles/{registration}",
+	(string registration, AutobarnDbContext db) =>
+		db.Vehicles.Find(registration));
 
-//TODO: add a MapGet for all models :)
+//TODO: implement this:
+app.MapPut("/api/vehicles/{registration}", async (AutobarnDbContext db, VehicleDto dto) => {
+	// what goes here?
+});
+
+app.MapPost("/api/vehicles", async (AutobarnDbContext db, VehicleDto dto) => {
+	var carModel = db.Models.FirstOrDefault(m => m.Code == dto.ModelCode);
+	var vehicle = new Vehicle {
+		Color = dto.Color,
+		Registration = dto.Registration,
+		Year = dto.Year,
+		Model = carModel
+	};
+	await db.Vehicles.AddAsync(vehicle);
+	await db.SaveChangesAsync();
+	return Results.Created($"/api/vehicles/{vehicle.Registration}", vehicle);
+});
 
 app.MapControllerRoute(
 	name: "default",
