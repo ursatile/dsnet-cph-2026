@@ -24,17 +24,17 @@ var host = builder.Build();
 var scope = host.Services.CreateScope();
 var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 logger.LogInformation("Connecting to pricing server on {grpc}", grpc);
-logger.LogInformation("Press a key to get a price...");
-while(true) {
-	Console.ReadKey();
-	var reply = await pricerClient.GetPriceAsync(new PriceRequest {
-		Color = "Blue",
-		Make = "Volkswagen",
-		Model = "Polo",
-		Year = 1985
-	});
-	logger.LogInformation("Got price: {reply}", reply);
-}
+//logger.LogInformation("Press a key to get a price...");
+//while(true) {
+//	Console.ReadKey();
+//	var reply = await pricerClient.GetPriceAsync(new PriceRequest {
+//		Color = "Blue",
+//		Make = "Volkswagen",
+//		Model = "Polo",
+//		Year = 1985
+//	});
+//	logger.LogInformation("Got price: {reply}", reply);
+//}
 host.Run();
 
 

@@ -25,5 +25,7 @@ def serve(port: int = 5002) -> None:
     server.wait_for_termination()
 
 if __name__ == "__main__":
+    print("Starting pricer gRPC server...")
+    logging.info("Starting pricer gRPC server")
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     serve()

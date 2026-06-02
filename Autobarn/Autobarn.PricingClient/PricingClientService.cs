@@ -33,7 +33,7 @@ namespace Autobarn.PricingClient {
 				Year = message.Year
 			};
 			logger.LogInformation("Getting price: {priceRequest}", priceRequest);
-			var priceReply = await pricer.GetPriceAsync(priceRequest);
+			var priceReply = pricer.GetPrice(priceRequest);
 			logger.LogInformation("Got price: {price} {currency}", priceReply.Price, priceReply.CurrencyCode);
 			try {
 				await player.Play("sample.wav");
