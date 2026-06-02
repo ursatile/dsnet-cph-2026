@@ -4,11 +4,14 @@ using Autobarn.Website.Services;
 using EasyNetQ;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using OpenTelemetry.Trace;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+builder.Services.ConfigureOpenTelemetryTracerProvider(tracing =>
+	tracing.AddEntityFrameworkCoreInstrumentation());
 
 var logger = LoggerFactory.Create(loggingBuilder => loggingBuilder.AddConsole()).CreateLogger<Program>();
 logger.LogInformation("Using in-memory database");
@@ -28,6 +31,7 @@ builder.Services.AddHostedService(services
 	=> services.GetRequiredService<OutboxHostedService>());
 
 var app = builder.Build();
+app.MapDefaultEndpoints();
 
 // Configure the HTTP request pipeline.
 if(!app.Environment.IsDevelopment()) {

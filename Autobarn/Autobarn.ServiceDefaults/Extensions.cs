@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.ServiceDiscovery;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -13,8 +12,8 @@ namespace Microsoft.Extensions.Hosting {
 	// This project should be referenced by each service project in your solution.
 	// To learn more about using this project, see https://aka.ms/aspire/service-defaults
 	public static class Extensions {
-		private const string HealthEndpointPath = "/health";
-		private const string AlivenessEndpointPath = "/alive";
+		private const string HEALTH_ENDPOINT_PATH = "/health";
+		private const string ALIVENESS_ENDPOINT_PATH = "/alive";
 
 		public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder {
 			builder.ConfigureOpenTelemetry();
@@ -54,11 +53,15 @@ namespace Microsoft.Extensions.Hosting {
 				})
 				.WithTracing(tracing => {
 					tracing.AddSource(builder.Environment.ApplicationName)
+						// Add tracing for rabbitMQ messages
+						.AddSource("RabbitMQ.Client.Publisher")
+						.AddSource("RabbitMQ.Client.Subscriber")
+
 						.AddAspNetCoreInstrumentation(tracing =>
 							// Exclude health check requests from tracing
 							tracing.Filter = context =>
-								!context.Request.Path.StartsWithSegments(HealthEndpointPath)
-								&& !context.Request.Path.StartsWithSegments(AlivenessEndpointPath)
+								!context.Request.Path.StartsWithSegments(HEALTH_ENDPOINT_PATH)
+								&& !context.Request.Path.StartsWithSegments(ALIVENESS_ENDPOINT_PATH)
 						)
 						// Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
 						//.AddGrpcClientInstrumentation()
@@ -100,10 +103,10 @@ namespace Microsoft.Extensions.Hosting {
 			// See https://aka.ms/aspire/healthchecks for details before enabling these endpoints in non-development environments.
 			if(app.Environment.IsDevelopment()) {
 				// All health checks must pass for app to be considered ready to accept traffic after starting
-				app.MapHealthChecks(HealthEndpointPath);
+				app.MapHealthChecks(HEALTH_ENDPOINT_PATH);
 
 				// Only health checks tagged with the "live" tag must pass for app to be considered alive
-				app.MapHealthChecks(AlivenessEndpointPath, new HealthCheckOptions {
+				app.MapHealthChecks(ALIVENESS_ENDPOINT_PATH, new HealthCheckOptions {
 					Predicate = r => r.Tags.Contains("live")
 				});
 			}

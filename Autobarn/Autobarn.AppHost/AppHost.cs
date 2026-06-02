@@ -18,4 +18,8 @@ builder.AddProject<Projects.Autobarn_AuditLog>("auditlog")
 	.WithReference(rabbitmq)
 	.WaitFor(rabbitmq);
 
+builder.AddProject<Projects.Autobarn_PricingClient>("pricing-client")
+	.WithReference(rabbitmq)
+	.WaitFor(rabbitmq);
+
 builder.Build().Run();

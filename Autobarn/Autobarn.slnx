@@ -3,6 +3,8 @@
   <Project Path="Autobarn.AuditLog/Autobarn.AuditLog.csproj" Id="39d40f7b-696d-45ca-8252-1d93d252f9fb" />
   <Project Path="Autobarn.Data/Autobarn.Data.csproj" />
   <Project Path="Autobarn.Messages/Autobarn.Messages.csproj" Id="07c0c076-e5e1-4bd8-990f-6e3183a0ae5c" />
+  <Project Path="Autobarn.PricingClient/Autobarn.PricingClient.csproj" />
+  <Project Path="Autobarn.PricingServer/Autobarn.PricingServer.csproj" />
   <Project Path="Autobarn.ServiceDefaults/Autobarn.ServiceDefaults.csproj" Id="472b0ae2-b03e-41fe-8a2d-509655c980c3" />
   <Project Path="Autobarn.Website/Autobarn.Website.csproj" />
 </Solution>
