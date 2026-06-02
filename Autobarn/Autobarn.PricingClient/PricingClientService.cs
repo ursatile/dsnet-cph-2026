@@ -17,7 +17,7 @@ namespace Autobarn.PricingClient {
 		public async Task StartAsync(CancellationToken cancellationToken) {
 			logger.LogInformation("Starting Autobarn PricingClientService...");
 			await bus.PubSub.SubscribeAsync<NewVehicleMessage>(SUBSCRIBER_ID,
-				HandleNewVehicleMessage, cancellationToken);
+				HandleNewVehicleMessage);
 		}
 
 		public Task StopAsync(CancellationToken cancellationToken) {
@@ -40,6 +40,9 @@ namespace Autobarn.PricingClient {
 			} catch(Exception) {
 				logger.LogWarning("kerching!");
 			}
+			var newVehiclePriceMessage = message.WithPrice(priceReply.Price, priceReply.CurrencyCode);
+			logger.LogInformation("Publishing: {newVehiclePriceMessage}", newVehiclePriceMessage);
+			await bus.PubSub.PublishAsync(newVehiclePriceMessage, CancellationToken.None);
 		}
 	}
 }

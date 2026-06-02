@@ -32,9 +32,14 @@ namespace Autobarn.Website.Services {
 				var db = scope.ServiceProvider.GetRequiredService<AutobarnDbContext>();
 				var bus = scope.ServiceProvider.GetRequiredService<IBus>();
 				OutboxMessage? messageRecord = null;
-				messageRecord = await db.OutboxMessages
-					.AsNoTracking()
-					.FirstOrDefaultAsync(m => m.SentAt == null, workToken);
+				try {
+					messageRecord = await db.OutboxMessages
+						.AsNoTracking()
+						.FirstOrDefaultAsync(m => m.SentAt == null, workToken);
+				} catch(Exception ex) {
+					logger.LogWarning(ex, "sqlite");
+					messageRecord = null;
+				}
 				if(messageRecord != null) {
 					switch(messageRecord.MessageType) {
 						case nameof(NewVehicleMessage):
@@ -48,13 +53,18 @@ namespace Autobarn.Website.Services {
 								messageRecord.FailureCount++;
 								messageRecord.FailureMessage = ex.Message;
 							} finally {
-								await db.OutboxMessages
+								try {
+									await db.OutboxMessages
 									.Where(m => m.Id == messageRecord.Id)
 									.ExecuteUpdateAsync(t
 											=> t.SetProperty(mr => mr.SentAt, messageRecord.SentAt)
 												.SetProperty(mr => mr.FailureCount, messageRecord.FailureCount)
 												.SetProperty(mr => mr.FailureMessage, messageRecord.FailureMessage),
 										CancellationToken.None);
+								} catch(Exception ex) {
+									logger.LogWarning(ex, "sqlite");
+									messageRecord = null;
+								}
 							}
 							break;
 					}

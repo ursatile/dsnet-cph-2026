@@ -1,5 +1,6 @@
 using Autobarn.Data;
 using Autobarn.Website.Api;
+using Autobarn.Website.Hubs;
 using Autobarn.Website.Services;
 using EasyNetQ;
 using Microsoft.Data.Sqlite;
@@ -14,16 +15,16 @@ builder.Services.ConfigureOpenTelemetryTracerProvider(tracing =>
 	tracing.AddEntityFrameworkCoreInstrumentation());
 
 var logger = LoggerFactory.Create(loggingBuilder => loggingBuilder.AddConsole()).CreateLogger<Program>();
-#if SQLITE
+//#if SQLITE
 logger.LogInformation("Using in-memory database");
 SqliteConnection sqliteConnection = new($"Data Source=:memory:");
 sqliteConnection.Open();
 builder.Services.AddDbContext<AutobarnDbContext>(options => options.UseSqlite(sqliteConnection));
-#else
-logger.LogInformation("Using SQL Server database");
-var sqlConnectionString = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
-builder.Services.AddDbContext<AutobarnDbContext>(options => options.UseSqlServer(sqlConnectionString));
-#endif
+//#else
+//logger.LogInformation("Using SQL Server database");
+//var sqlConnectionString = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
+//builder.Services.AddDbContext<AutobarnDbContext>(options => options.UseSqlServer(sqlConnectionString));
+//#endif
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddOpenApi();
@@ -34,6 +35,8 @@ builder.Services.AddEasyNetQ(rabbitmq);
 builder.Services.AddSingleton<OutboxHostedService>();
 builder.Services.AddHostedService(services
 	=> services.GetRequiredService<OutboxHostedService>());
+
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 app.MapDefaultEndpoints();
@@ -62,6 +65,7 @@ app.MapStaticAssets();
 
 app.MapAutobarnApi();
 
+app.MapHub<AutobarnHub>("/hub");
 app.MapControllerRoute(
 	name: "default",
 	pattern: "{controller=Home}/{action=Index}/{id?}")

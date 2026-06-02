@@ -21,12 +21,15 @@ var rabbitmq = builder.AddRabbitMQ(
 var website = builder.AddProject<Projects.Autobarn_Website>("autobarn-website")
 	.WaitFor(rabbitmq)
 	.WithReference(rabbitmq)
+	.WithHttpEndpoint(name: "autobarn-website-endpoint")
 	.WithReference(sql, connectionName: "AZURE_SQL_CONNECTIONSTRING");
 
 // uncomment this to use the.NET pricing server
 var pricingServer = builder
    .AddProject<Projects.Autobarn_PricingServer>("autobarn-pricing-server")
    .WithHttpEndpoint(name: "grpc");
+
+
 
 //var pricingServer = builder.AddPythonApp(
 //	name: "autobarn-python-pricing-server",
@@ -46,5 +49,12 @@ builder.AddProject<Projects.Autobarn_PricingClient>("pricing-client")
 	.WithReference(pricingServer)
 	.WaitFor(pricingServer)
 	.WithEnvironment("grpc", pricingServer.GetEndpoint("grpc"));
+
+builder.AddProject<Projects.Autobarn_Notifier>("notifier")
+	.WithReference(website)
+	.WithEnvironment("autobarn-website-url", website.GetEndpoint("autobarn-website-endpoint"))
+	.WaitFor(website)
+	.WithReference(rabbitmq)
+	.WaitFor(rabbitmq);
 
 builder.Build().Run();
