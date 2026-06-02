@@ -74,10 +74,30 @@ body {
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+	color: var(--bs-secondary-color);
+	text-align: end;
 }
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+	text-align: start;
+}
+
+div#signalr-notifications {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	z-index: 5;
+	width: 240px;
+	height: auto;
+
+	div {
+		border: 1px solid #000;
+		background-color: var(--background-color);
+		color: hsl(from var(--background-color) calc(h + 180) s calc(100 - l));
+		border-radius: 8px;
+		width: 240px;
+		padding: 8px;
+		margin-bottom: 8px;
+		font-size: 80%;
+	}
 }
