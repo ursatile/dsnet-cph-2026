@@ -13,7 +13,7 @@ namespace Autobarn.Website.Services {
 		private int checks = 0;
 
 		private CancellationTokenSource sleepTokenSource = new();
-		
+
 		private CancellationToken sleepToken;
 
 		public void WakeUpAndDoStuff() {
@@ -32,14 +32,9 @@ namespace Autobarn.Website.Services {
 				var db = scope.ServiceProvider.GetRequiredService<AutobarnDbContext>();
 				var bus = scope.ServiceProvider.GetRequiredService<IBus>();
 				OutboxMessage? messageRecord = null;
-				try {
-					messageRecord = await db.OutboxMessages
+				messageRecord = await db.OutboxMessages
 					.AsNoTracking()
 					.FirstOrDefaultAsync(m => m.SentAt == null, workToken);
-				} catch(Exception ex) {
-					logger.LogWarning("Database error: {ex}", ex);
-					messageRecord = null;
-				}
 				if(messageRecord != null) {
 					switch(messageRecord.MessageType) {
 						case nameof(NewVehicleMessage):
