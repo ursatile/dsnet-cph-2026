@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "Autobarn.PricingServer";
+option csharp_namespace = "GreetingServer";
 
 package greet;
 

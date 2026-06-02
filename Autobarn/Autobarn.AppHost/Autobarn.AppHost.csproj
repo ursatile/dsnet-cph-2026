@@ -1,22 +1,24 @@
 <Project Sdk="Aspire.AppHost.Sdk/13.4.0">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <UserSecretsId>dd87f081-aabc-4b1a-b05e-96b66d5a0bb0</UserSecretsId>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<UserSecretsId>dd87f081-aabc-4b1a-b05e-96b66d5a0bb0</UserSecretsId>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="13.4.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Aspire.Hosting.RabbitMQ" Version="13.4.0" />
+		<PackageReference Include="Aspire.Hosting.SqlServer" Version="13.3.5" />
+		
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Autobarn.AuditLog\Autobarn.AuditLog.csproj" />
-    <ProjectReference Include="..\Autobarn.PricingClient\Autobarn.PricingClient.csproj" />
-    <ProjectReference Include="..\Autobarn.PricingServer\Autobarn.PricingServer.csproj" />
-    <ProjectReference Include="..\Autobarn.Website\Autobarn.Website.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Autobarn.AuditLog\Autobarn.AuditLog.csproj" />
+		<ProjectReference Include="..\Autobarn.PricingClient\Autobarn.PricingClient.csproj" />
+		<ProjectReference Include="..\Autobarn.PricingServer\Autobarn.PricingServer.csproj" />
+		<ProjectReference Include="..\Autobarn.Website\Autobarn.Website.csproj" />
+	</ItemGroup>
 
 </Project>

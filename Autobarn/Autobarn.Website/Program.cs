@@ -14,12 +14,17 @@ builder.Services.ConfigureOpenTelemetryTracerProvider(tracing =>
 	tracing.AddEntityFrameworkCoreInstrumentation());
 
 var logger = LoggerFactory.Create(loggingBuilder => loggingBuilder.AddConsole()).CreateLogger<Program>();
+#if SQLITE
 logger.LogInformation("Using in-memory database");
 SqliteConnection sqliteConnection = new($"Data Source=:memory:");
 sqliteConnection.Open();
-
-
 builder.Services.AddDbContext<AutobarnDbContext>(options => options.UseSqlite(sqliteConnection));
+#else
+logger.LogInformation("Using SQL Server database");
+var sqlConnectionString = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
+builder.Services.AddDbContext<AutobarnDbContext>(options => options.UseSqlServer(sqlConnectionString));
+#endif
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddOpenApi();
 

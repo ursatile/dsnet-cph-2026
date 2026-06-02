@@ -1,16 +1,14 @@
+using Autobarn.PricingEngine;
 using Grpc.Core;
 
 namespace Autobarn.PricingServer.Services;
 
-public class GreeterService(ILogger<GreeterService> logger) : Greeter.GreeterBase
-{
-    public override Task<HelloReply> SayHello(HelloRequest request, ServerCallContext context)
-    {
-        logger.LogInformation("The message is received from {Name}", request.Name);
-
-        return Task.FromResult(new HelloReply
-        {
-            Message = "Hello " + request.Name
-        });
-    }
+public class GreeterService(ILogger<GreeterService> logger) : Pricer.PricerBase {
+	public override Task<PriceReply> GetPrice(PriceRequest request, ServerCallContext context) {
+		logger.LogInformation("Getting price for {request}", request);
+		return Task.FromResult(new PriceReply {
+			CurrencyCode = "DKK",
+			Price = 123456
+		});
+	}
 }

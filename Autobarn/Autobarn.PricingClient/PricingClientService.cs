@@ -1,4 +1,5 @@
 using Autobarn.Messages;
+using Autobarn.PricingEngine;
 using EasyNetQ;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -6,7 +7,9 @@ using NetCoreAudio;
 
 namespace Autobarn.PricingClient {
 	internal class PricingClientService(
-		IBus bus, ILogger<PricingClientService> logger
+		IBus bus,
+		Pricer.PricerClient pricer,
+		ILogger<PricingClientService> logger
 	): IHostedService {
 		const string SUBSCRIBER_ID = "autobarn.PricingClient";
 		private readonly Player player = new();
@@ -23,8 +26,15 @@ namespace Autobarn.PricingClient {
 		}
 
 		private async Task HandleNewVehicleMessage(NewVehicleMessage message) {
+			var priceRequest = new PriceRequest {
+				Color = message.Color,
+				Make = message.Make,
+				Model = message.Model,
+				Year = message.Year
+			};
+			var priceReply = await pricer.GetPriceAsync(priceRequest);
+			logger.LogInformation("Got price: {price} {currency}", priceReply.Price, priceReply.CurrencyCode);
 			await player.Play("sample.wav");
-			logger.LogInformation("New Vehicle: {message}", message);
 		}
 	}
 }
