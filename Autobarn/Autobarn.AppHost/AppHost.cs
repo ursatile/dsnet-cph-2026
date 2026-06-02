@@ -15,6 +15,7 @@ var rabbitmq = builder.AddRabbitMQ(
 	userName: rabbitMqUsername,
 	password: rabbitMqPassword)
 	.WithContainerName("autobarn-rabbitmq")
+	.WithLifetime(ContainerLifetime.Persistent)
 	.WithManagementPlugin();
 
 var website = builder.AddProject<Projects.Autobarn_Website>("autobarn-website")
@@ -22,9 +23,18 @@ var website = builder.AddProject<Projects.Autobarn_Website>("autobarn-website")
 	.WithReference(rabbitmq)
 	.WithReference(sql, connectionName: "AZURE_SQL_CONNECTIONSTRING");
 
-var pricingServer = builder
-	.AddProject<Projects.Autobarn_PricingServer>("autobarn-pricing-server")
-	.WithHttpEndpoint(name: "grpc");
+// uncomment this to use the .NET pricing server
+//var pricingServer = builder
+//	.AddProject<Projects.Autobarn_PricingServer>("autobarn-pricing-server")
+//	.WithHttpEndpoint(name: "grpc");
+
+var pricingServer = builder.AddPythonApp(
+	name: "autobarn-pricing-server",
+	appDirectory: "../../python",
+	scriptPath: "server.py")
+	.WithUv()
+	.WithHttpEndpoint(port: 5002, env: "PORT", name: "autobarn-grpc-server-http-endpoint");
+
 
 builder.AddProject<Projects.Autobarn_AuditLog>("auditlog")
 	.WithReference(rabbitmq)
@@ -35,6 +45,6 @@ builder.AddProject<Projects.Autobarn_PricingClient>("pricing-client")
 	.WaitFor(rabbitmq)
 	.WithReference(pricingServer)
 	.WaitFor(pricingServer)
-	.WithEnvironment("grpc", pricingServer.GetEndpoint("grpc"));
+	.WithEnvironment("grpc", pricingServer.GetEndpoint("autobarn-grpc-server-http-endpoint"));
 
 builder.Build().Run();

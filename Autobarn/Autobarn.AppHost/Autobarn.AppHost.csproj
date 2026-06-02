@@ -9,6 +9,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Aspire.Hosting.Python" Version="13.4.0" />
 		<PackageReference Include="Aspire.Hosting.RabbitMQ" Version="13.4.0" />
 		<PackageReference Include="Aspire.Hosting.SqlServer" Version="13.3.5" />
 		

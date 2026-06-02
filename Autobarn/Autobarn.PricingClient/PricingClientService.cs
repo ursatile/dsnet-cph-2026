@@ -32,9 +32,14 @@ namespace Autobarn.PricingClient {
 				Model = message.Model,
 				Year = message.Year
 			};
+			logger.LogInformation("Getting price: {priceRequest}", priceRequest);
 			var priceReply = await pricer.GetPriceAsync(priceRequest);
 			logger.LogInformation("Got price: {price} {currency}", priceReply.Price, priceReply.CurrencyCode);
-			await player.Play("sample.wav");
+			try {
+				await player.Play("sample.wav");
+			} catch(Exception) {
+				logger.LogWarning("kerching!");
+			}
 		}
 	}
 }

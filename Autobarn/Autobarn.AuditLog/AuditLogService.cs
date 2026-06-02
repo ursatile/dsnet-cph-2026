@@ -24,7 +24,11 @@ namespace Autobarn.AuditLog {
 
 		private async Task HandleNewVehicleMessage(NewVehicleMessage message) {
 			await Task.Delay(TimeSpan.FromSeconds(1));
-			await player.Play("sample.wav");
+			try {
+				await player.Play("sample.wav");
+			} catch(Exception) {
+				logger.LogWarning("baaaaaaaa");
+			}
 			logger.LogInformation("New Vehicle: {message}", message);			
 		}
 	}
