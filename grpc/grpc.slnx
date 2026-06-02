@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="GreetingServer/GreetingServer.csproj" />
+  <Project Path="GrpcGreeterClient/GrpcGreeterClient.csproj" />
+</Solution>
