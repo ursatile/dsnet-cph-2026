@@ -1,6 +1,12 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var rabbitmq = builder.AddRabbitMQ("rabbitmq")
+var rabbitMqUsername = builder.AddParameter("username", "admin", secret: true);
+var rabbitMqPassword = builder.AddParameter("password", "secret", secret: true);
+
+var rabbitmq = builder.AddRabbitMQ(
+	"rabbitmq",
+	userName: rabbitMqUsername,
+	password: rabbitMqPassword)
 	.WithContainerName("autobarn-rabbitmq")
 	.WithManagementPlugin();
 

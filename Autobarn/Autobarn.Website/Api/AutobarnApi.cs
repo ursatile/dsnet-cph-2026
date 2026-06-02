@@ -11,6 +11,22 @@ using System.Media;
 namespace Autobarn.Website.Api;
 
 public static class EndpointRouteBuilderExtensions {
+
+	private static async Task CreateVehicle(AutobarnDbContext db, Vehicle vehicle) {
+		var message = new NewVehicleMessage() {
+			Color = vehicle.Color,
+			Make = vehicle.Model.Make.Name,
+			Model = vehicle.Model.Name,
+			Registration = vehicle.Registration!,
+			CreatedAt = DateTimeOffset.UtcNow,
+			Year = vehicle.Year
+		};
+
+		// Actually list the vehicle for sale.
+		await db.Vehicles.AddAsync(vehicle);
+		await db.OutboxMessages.AddAsync(new OutboxMessage(message));
+		await db.SaveChangesAsync();
+	}
 	public static IEndpointRouteBuilder MapAutobarnApi(
 		this IEndpointRouteBuilder app,
 		string path = "/api"
@@ -22,25 +38,33 @@ public static class EndpointRouteBuilderExtensions {
 
 		app.MapPut("/api/vehicles/{registration}", async (AutobarnDbContext db,
 			string registration,
-			VehicleDto dto) => {
+			VehicleDto dto,
+			ILogger<Program> logger,
+			OutboxHostedService outbox) => {
 				if(registration != dto.Registration) return Results.BadRequest();
+
+				var carModel = db.Models
+				.Include(m => m.Make)
+				.FirstOrDefault(m => m.Code == dto.ModelCode);
+				if(carModel == null) return Results.BadRequest();
+
 				var vehicle = await db.Vehicles.FindAsync(dto.Registration);
 				if(vehicle == null) {
 					var newVehicle = new Vehicle {
 						Color = dto.Color,
 						Registration = dto.Registration,
 						Year = dto.Year,
-						ModelCode = dto.ModelCode
+						Model = carModel
 					};
-
-					await db.Vehicles.AddAsync(newVehicle);
-					await db.SaveChangesAsync();
+					await CreateVehicle(db, newVehicle);
+					outbox.WakeUpAndDoStuff();
+					logger.LogInformation("PUT: Created new vehicle: {vehicle}", vehicle);
 					return Results.Created($"/api/vehicles/{newVehicle.Registration}", newVehicle);
 				}
 
 				vehicle.Color = dto.Color;
 				vehicle.Year = dto.Year;
-				vehicle.ModelCode = dto.ModelCode;
+				vehicle.Model = carModel;
 				await db.SaveChangesAsync();
 				return Results.NoContent();
 			});
@@ -74,25 +98,14 @@ public static class EndpointRouteBuilderExtensions {
 						Year = dto.Year,
 						Model = carModel
 					};
-					var message = new NewVehicleMessage() {
-						Color = dto.Color,
-						Make = carModel.Make.Name,
-						Model = carModel.Name,
-						Registration = dto.Registration!,
-						CreatedAt = DateTimeOffset.UtcNow,
-						Year = dto.Year
-					};
 
-					// Actually list the vehicle for sale.
-					await db.Vehicles.AddAsync(vehicle);
-					await db.OutboxMessages.AddAsync(new OutboxMessage(message));
-					await db.SaveChangesAsync();
 
 					// POWER OUTAGE HERE
+					await CreateVehicle(db, vehicle);
 
 					outbox.WakeUpAndDoStuff();
 
-					logger.LogInformation("Created new vehicle: {reg} ({make}, {model}, {color}, {year})",
+					logger.LogInformation("POST: Created new vehicle: {reg} ({make}, {model}, {color}, {year})",
 						dto.Registration, carModel.Make.Name, carModel.Name, dto.Color, dto.Year);
 					return Results.Created($"/api/vehicles/{vehicle.Registration}", vehicle);
 				})
