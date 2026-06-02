@@ -8,10 +8,14 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.AddServiceDefaults();
+
 var logger = LoggerFactory.Create(loggingBuilder => loggingBuilder.AddConsole()).CreateLogger<Program>();
 logger.LogInformation("Using in-memory database");
 SqliteConnection sqliteConnection = new($"Data Source=:memory:");
 sqliteConnection.Open();
+
+
 builder.Services.AddDbContext<AutobarnDbContext>(options => options.UseSqlite(sqliteConnection));
 builder.Services.AddControllersWithViews();
 builder.Services.AddOpenApi();

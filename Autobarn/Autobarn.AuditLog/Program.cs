@@ -6,6 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 var builder = Host.CreateApplicationBuilder(args);
+
+builder.AddServiceDefaults();
+
 var rabbitmq = builder.Configuration.GetConnectionString("rabbitmq");
 builder.Services.AddEasyNetQ(rabbitmq);
 builder.Services.AddHostedService<AuditLogService>();
